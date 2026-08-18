@@ -7,13 +7,20 @@ import type { User } from "./types";
 export default function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const deleteUser = (id: number) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this user?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+  };
 
   function addUser(user: User) {
     setUsers([...users, user]);
-  }
-
-  function deleteUser(id: number) {
-    setUsers(users.filter((user) => user.id !== id));
   }
 
   function editUser(user: User) {
