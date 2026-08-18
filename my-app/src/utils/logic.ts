@@ -16,33 +16,5 @@ function isDuplicate(
   );
 }
 
-function filterUsers(
-  users: User[],
-  search: string
-): User[] {
-  const value = search.toLowerCase();
 
-  return users.filter((user) =>
-    Object.values(user)
-      .join(" ")
-      .toLowerCase()
-      .includes(value)
-  );
-}
-
-function sortUsers(
-  users: User[],
-  field: keyof User,
-  order: "asc" | "desc"
-): User[] {
-  return [...users].sort((a, b) => {
-    const x = String(a[field]).toLowerCase();
-    const y = String(b[field]).toLowerCase();
-
-    return order === "asc"
-      ? x.localeCompare(y)
-      : y.localeCompare(x);
-  });
-}
-
-export { validateEmail, isDuplicate, filterUsers, sortUsers };
+export { validateEmail, isDuplicate};
