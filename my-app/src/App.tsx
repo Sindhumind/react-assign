@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "./components/header";
 import UserForm from "./components/userForm";
 import UserTable from "./components/userTable";
 import type { User } from "./types";
 
 export default function App() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>(() => {
+    const savedUsers = localStorage.getItem("users");
+
+    return savedUsers ? JSON.parse(savedUsers) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("users", JSON.stringify(users));
+  }, [users]);
+
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+
   const deleteUser = (id: number) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this user?",
@@ -20,7 +30,7 @@ export default function App() {
   };
 
   function addUser(user: User) {
-    setUsers([...users, user]);
+    setUsers((prevUsers) => [...prevUsers, user]);
   }
 
   function editUser(user: User) {
@@ -28,8 +38,10 @@ export default function App() {
   }
 
   function updateUser(updatedUser: User) {
-    setUsers(
-      users.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user.id === updatedUser.id ? updatedUser : user,
+      ),
     );
 
     setUserToEdit(null);
