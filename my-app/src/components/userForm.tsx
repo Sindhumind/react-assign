@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { User } from "../types";
 import { validateEmail, isDuplicate } from "../utils/logic";
 
@@ -15,19 +15,10 @@ export default function UserForm({
   onEditUser,
   userToEdit,
 }: UserFormProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [gender, setGender] = useState("");
-
-  useEffect(() => {
-    if (userToEdit) {
-      setName(userToEdit.name);
-      setEmail(userToEdit.email);
-      setPhone(userToEdit.phone);
-      setGender(userToEdit.gender);
-    }
-  }, [userToEdit]);
+  const [name, setName] = useState(userToEdit?.name ?? "");
+  const [email, setEmail] = useState(userToEdit?.email ?? "");
+  const [phone, setPhone] = useState(userToEdit?.phone ?? "");
+  const [gender, setGender] = useState(userToEdit?.gender ?? "");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,10 +45,10 @@ export default function UserForm({
 
     const newUser: User = {
       id: userToEdit ? userToEdit.id : Date.now(),
-      name: name,
-      email: email,
-      phone: phone,
-      gender: gender,
+      name,
+      email,
+      phone,
+      gender,
     };
 
     if (userToEdit) {

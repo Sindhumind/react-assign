@@ -34,6 +34,7 @@ export default function App() {
 
       <div className="app-content">
         <UserForm
+          key={userToEdit?.id ?? "new"}
           users={users}
           onAddUser={addUser}
           onEditUser={updateUser}
