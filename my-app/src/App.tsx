@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import Header from "./components/header";
 import UserForm from "./components/userForm";
 import UserTable from "./components/userTable";
-import ConfirmModal from "./components/ConfirmModal";
+import ConfirmModal from "./components/confirmModalDelete";
 import { useUsers } from "./hooks/useUsers";
 import type { User } from "./types";
 

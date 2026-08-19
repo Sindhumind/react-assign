@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Toast from "./Toast";
+import Toast from "./toastAlerts.tsx";
 import type { User } from "../types";
 import { validateEmail, isDuplicate } from "../utils/logic";
 
