@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Toast from "./Toast";
 import type { User } from "../types";
 import { validateEmail, isDuplicate } from "../utils/logic";
 
@@ -15,6 +16,8 @@ export default function UserForm({
   onEditUser,
   userToEdit,
 }: UserFormProps) {
+  const [toast, setToast] = useState("");
+
   const [name, setName] = useState(userToEdit?.name ?? "");
   const [email, setEmail] = useState(userToEdit?.email ?? "");
   const [phone, setPhone] = useState(userToEdit?.phone ?? "");
@@ -24,22 +27,22 @@ export default function UserForm({
     e.preventDefault();
 
     if (!name || !email || !phone) {
-      alert("Fill all fields");
+      setToast("Fill all fields");
       return;
     }
 
     if (!gender) {
-      alert("Select gender");
+      setToast("Select gender");
       return;
     }
 
     if (!validateEmail(email)) {
-      alert("Invalid email");
+      setToast("Invalid email");
       return;
     }
 
     if (isDuplicate(users, email, userToEdit ? userToEdit.id : null)) {
-      alert("Duplicate email");
+      setToast("Duplicate email");
       return;
     }
 
@@ -65,6 +68,8 @@ export default function UserForm({
 
   return (
     <div className="card">
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+
       <form onSubmit={handleSubmit}>
         <h2>{userToEdit ? "Edit User" : "Add User"}</h2>
 

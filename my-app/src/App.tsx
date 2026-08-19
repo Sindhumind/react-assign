@@ -1,51 +1,45 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Header from "./components/header";
 import UserForm from "./components/userForm";
 import UserTable from "./components/userTable";
+import ConfirmModal from "./components/ConfirmModal";
+import { useUsers } from "./hooks/useUsers";
 import type { User } from "./types";
 
 export default function App() {
-  const [users, setUsers] = useState<User[]>(() => {
-    const savedUsers = localStorage.getItem("users");
-
-    return savedUsers ? JSON.parse(savedUsers) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
+  const { users, addUser, updateUser, deleteUser } = useUsers();
 
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
-  const deleteUser = (id: number) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this user?",
-    );
+  const editUser = useCallback((user: User) => {
+    setUserToEdit(user);
+  }, []);
 
-    if (!confirmed) {
+  const handleUpdateUser = useCallback(
+    (updatedUser: User) => {
+      updateUser(updatedUser);
+      setUserToEdit(null);
+    },
+    [updateUser],
+  );
+
+  const handleDeleteUser = useCallback((id: number) => {
+    setUserToDelete(id);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (userToDelete === null) {
       return;
     }
 
-    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
-  };
+    deleteUser(userToDelete);
+    setUserToDelete(null);
+  }, [userToDelete, deleteUser]);
 
-  function addUser(user: User) {
-    setUsers((prevUsers) => [...prevUsers, user]);
-  }
-
-  function editUser(user: User) {
-    setUserToEdit(user);
-  }
-
-  function updateUser(updatedUser: User) {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === updatedUser.id ? updatedUser : user,
-      ),
-    );
-
-    setUserToEdit(null);
-  }
+  const cancelDelete = useCallback(() => {
+    setUserToDelete(null);
+  }, []);
 
   return (
     <>
@@ -56,17 +50,21 @@ export default function App() {
           key={userToEdit?.id ?? "new"}
           users={users}
           onAddUser={addUser}
-          onEditUser={updateUser}
+          onEditUser={handleUpdateUser}
           userToEdit={userToEdit}
         />
 
         <UserTable
           users={users}
-          onDeleteUser={deleteUser}
+          onDeleteUser={handleDeleteUser}
           onEditUser={editUser}
           userToEdit={userToEdit}
         />
       </div>
+
+      {userToDelete !== null && (
+        <ConfirmModal onConfirm={confirmDelete} onCancel={cancelDelete} />
+      )}
     </>
   );
 }

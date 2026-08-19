@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { User } from "../types";
 
 type UserTableProps = {
@@ -7,7 +8,7 @@ type UserTableProps = {
   userToEdit: User | null;
 };
 
-export default function UserTable({
+function UserTable({
   users,
   onDeleteUser,
   onEditUser,
@@ -44,6 +45,7 @@ export default function UserTable({
                   <button className="btn" onClick={() => onEditUser(user)}>
                     Edit
                   </button>
+
                   <button
                     className="btn btn-delete"
                     onClick={() => onDeleteUser(user.id)}
@@ -59,3 +61,5 @@ export default function UserTable({
     </div>
   );
 }
+
+export default memo(UserTable);
