@@ -256,23 +256,40 @@ label {
 
 /*SEARCH*/
 
-.input-search {
-  width: 100%;
+.table-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
 
-  min-height: 30px;
+.table-filters .input {
+  flex: 1;
+  min-width: 180px;
+}
 
-  padding: var(--space-sm);
+.table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
 
-  border: 1px solid
-    var(--color-border);
+.sort-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+}
 
-  border-radius: var(
-    --radius-sm
-  );
+.sort-button:hover {
+  opacity: 0.7;
+}
 
-  margin-bottom: var(
-    --space-md
-  );
+.no-users {
+  text-align: center;
+  padding: 20px;
 }
 
 /* TABLE*/
