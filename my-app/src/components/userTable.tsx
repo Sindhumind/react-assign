@@ -172,6 +172,7 @@ function UserTable({
                   </button>
                 </div>
               </th>
+              <th>Profile Photo</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -187,7 +188,22 @@ function UserTable({
                   <td>{user.email}</td>
                   <td>{user.phone}</td>
                   <td>{user.gender}</td>
-
+                  <td>
+                    {user.profile_photo ? (
+                      <img
+                        src={`http://localhost:3000/uploads/${user.profile_photo}`}
+                        alt={user.profile_photo}
+                        width="50"
+                        height="50"
+                        style={{
+                          objectFit: "cover",
+                          borderRadius: "50%",
+                        }}
+                      />
+                    ) : (
+                      "No Image"
+                    )}
+                  </td>
                   <td>
                     <button
                       type="button"

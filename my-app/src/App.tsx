@@ -16,9 +16,10 @@ export default function App() {
     setUserToEdit(user);
   }, []);
 
+  // Update user including profile photo
   const handleUpdateUser = useCallback(
-    (updatedUser: User) => {
-      updateUser(updatedUser);
+    (updatedUser: User, profilePhoto: File | null) => {
+      updateUser(updatedUser, profilePhoto);
       setUserToEdit(null);
     },
     [updateUser],

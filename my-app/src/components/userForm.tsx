@@ -5,8 +5,8 @@ import { validateEmail, isDuplicate } from "../utils/logic";
 
 type UserFormProps = {
   users: User[];
-  onAddUser: (user: User) => void;
-  onEditUser: (user: User) => void;
+  onAddUser: (user: User, profilePhoto: File | null) => void;
+  onEditUser: (user: User, profilePhoto: File | null) => void;
   userToEdit: User | null;
 };
 
@@ -18,13 +18,45 @@ export default function UserForm({
 }: UserFormProps) {
   const [toast, setToast] = useState("");
 
-  const [name, setName] = useState(userToEdit?.name ?? "");
-  const [email, setEmail] = useState(userToEdit?.email ?? "");
-  const [phone, setPhone] = useState(userToEdit?.phone ?? "");
-  const [gender, setGender] = useState(userToEdit?.gender ?? "");
+  const [formData, setFormData] = useState({
+    name: userToEdit?.name ?? "",
+    email: userToEdit?.email ?? "",
+    phone: userToEdit?.phone ?? "",
+    gender: userToEdit?.gender ?? "",
+  });
 
-  function handleSubmit(e: React.FormEvent) {
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (/^\d*$/.test(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        phone: value,
+      }));
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+
+    setProfilePhoto(file);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const { name, email, phone, gender } = formData;
 
     if (!name || !email || !phone) {
       setToast("Fill all fields");
@@ -41,7 +73,7 @@ export default function UserForm({
       return;
     }
 
-    if (isDuplicate(users, email, userToEdit ? userToEdit.id : null)) {
+    if (isDuplicate(users, email, userToEdit?.id ?? null)) {
       setToast("Duplicate email");
       return;
     }
@@ -52,19 +84,26 @@ export default function UserForm({
       email,
       phone,
       gender,
+      profile_photo: userToEdit?.profile_photo ?? "",
     };
 
     if (userToEdit) {
-      onEditUser(newUser);
+      console.log("Sending image from UserForm:", profilePhoto);
+
+      onEditUser(newUser, profilePhoto);
     } else {
-      onAddUser(newUser);
+      onAddUser(newUser, profilePhoto);
     }
 
-    setName("");
-    setEmail("");
-    setPhone("");
-    setGender("");
-  }
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      gender: "",
+    });
+
+    setProfilePhoto(null);
+  };
 
   return (
     <div className="card">
@@ -73,47 +112,88 @@ export default function UserForm({
       <form onSubmit={handleSubmit}>
         <h2>{userToEdit ? "Edit User" : "Add User"}</h2>
 
+        {/* Name */}
         <input
           className="input"
+          name="name"
           placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={formData.name}
+          onChange={handleChange}
         />
 
+        {/* Email */}
         <input
           className="input"
+          name="email"
+          type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={formData.email}
+          onChange={handleChange}
         />
 
+        {/* Phone */}
         <input
           className="input"
+          name="phone"
           type="tel"
           placeholder="Phone"
-          value={phone}
-          onChange={(e) => {
-            const value = e.target.value;
-
-            if (/^\d*$/.test(value)) {
-              setPhone(value);
-            }
-          }}
+          value={formData.phone}
+          onChange={handlePhoneChange}
         />
 
+        {/* Gender */}
         <div className="radio-group">
           {["Male", "Female", "Other"].map((item) => (
             <label key={item}>
               <input
                 type="radio"
+                name="gender"
                 value={item}
-                checked={gender === item}
-                onChange={(e) => setGender(e.target.value)}
+                checked={formData.gender === item}
+                onChange={handleChange}
               />
               {item}
             </label>
           ))}
         </div>
+
+        {/* Profile Photo */}
+        <input
+          className="input"
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoChange}
+        />
+
+        {/* Preview selected image */}
+        {profilePhoto && (
+          <img
+            src={URL.createObjectURL(profilePhoto)}
+            alt="Profile preview"
+            style={{
+              width: "80px",
+              height: "80px",
+              objectFit: "cover",
+              borderRadius: "50%",
+              marginTop: "10px",
+            }}
+          />
+        )}
+
+        {/* Existing image while editing */}
+        {!profilePhoto && userToEdit?.profile_photo && (
+          <img
+            src={`http://localhost:3000/uploads/${userToEdit.profile_photo}`}
+            alt="Current profile"
+            style={{
+              width: "80px",
+              height: "80px",
+              objectFit: "cover",
+              borderRadius: "50%",
+              marginTop: "10px",
+            }}
+          />
+        )}
 
         <button className="btn" type="submit">
           {userToEdit ? "Update" : "Submit"}
