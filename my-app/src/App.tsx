@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import Header from "./components/header";
+import Login from "./components/login";
 import UserForm from "./components/userForm";
 import UserTable from "./components/userTable";
 import ConfirmModal from "./components/confirmModalDelete";
@@ -7,23 +8,32 @@ import { useUsers } from "./hooks/useUsers";
 import type { User } from "./types";
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    () => !!localStorage.getItem("token"),
+  );
+
   const { users, addUser, updateUser, deleteUser } = useUsers();
 
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
+  const handleLogin = useCallback(() => {
+    setIsLoggedIn(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+  }, []);
+
   const editUser = useCallback((user: User) => {
     setUserToEdit(user);
   }, []);
 
-  // Update user including profile photo
-  const handleUpdateUser = useCallback(
-    (updatedUser: User, profilePhoto: File | null) => {
-      updateUser(updatedUser, profilePhoto);
-      setUserToEdit(null);
-    },
-    [updateUser],
-  );
+  // Clear edit mode
+  const cancelEdit = useCallback(() => {
+    setUserToEdit(null);
+  }, []);
 
   const handleDeleteUser = useCallback((id: number) => {
     setUserToDelete(id);
@@ -42,17 +52,23 @@ export default function App() {
     setUserToDelete(null);
   }, []);
 
+  // Show login page
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <>
-      <Header />
+      <Header onLogout={handleLogout} />
 
       <div className="app-content">
         <UserForm
           key={userToEdit?.id ?? "new"}
           users={users}
           onAddUser={addUser}
-          onEditUser={handleUpdateUser}
+          onEditUser={updateUser}
           userToEdit={userToEdit}
+          onCancelEdit={cancelEdit}
         />
 
         <UserTable

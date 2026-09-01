@@ -172,8 +172,8 @@ function UserTable({
                   </button>
                 </div>
               </th>
-              <th>Profile Photo</th>
-              <th>Actions</th>
+              <th className="profile-photo-column">Profile Photo</th>
+              <th className="action-column">Actions</th>
             </tr>
           </thead>
 
@@ -188,38 +188,28 @@ function UserTable({
                   <td>{user.email}</td>
                   <td>{user.phone}</td>
                   <td>{user.gender}</td>
-                  <td>
-                    {user.profile_photo ? (
+                  <td className="profile-photo-column">
+                    {user.profile_photo && (
                       <img
                         src={`http://localhost:3000/uploads/${user.profile_photo}`}
-                        alt={user.profile_photo}
-                        width="50"
-                        height="50"
-                        style={{
-                          objectFit: "cover",
-                          borderRadius: "50%",
-                        }}
+                        alt={user.name}
+                        className="profile-photo"
                       />
-                    ) : (
-                      "No Image"
                     )}
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => onEditUser(user)}
-                    >
-                      Edit
-                    </button>
+                    <div className="actions">
+                      <button className="btn" onClick={() => onEditUser(user)}>
+                        Edit
+                      </button>
 
-                    <button
-                      type="button"
-                      className="btn btn-delete"
-                      onClick={() => onDeleteUser(user.id)}
-                    >
-                      Delete
-                    </button>
+                      <button
+                        className="btn btn-delete"
+                        onClick={() => onDeleteUser(user.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

@@ -1,6 +1,4 @@
 import { Router } from "express";
-import upload from "../middleware/upload";
-
 import {
   getUsers,
   getUserById,
@@ -8,25 +6,34 @@ import {
   updateUser,
   deleteUser,
 } from "../controllers/userController";
+import upload from "../middleware/upload";
+import { authenticateToken } from "../middleware/authMiddleware";
 
 const router = Router();
 
-router.get("/", getUsers);
+// Get all users
+router.get("/", authenticateToken, getUsers);
 
-router.get("/:id", getUserById);
+// Get user by ID
+router.get("/:id", authenticateToken, getUserById);
 
+// Create user
 router.post(
   "/",
+  authenticateToken,
   upload.single("profile_photo"),
   createUser,
 );
 
+// Update user
 router.put(
   "/:id",
+  authenticateToken,
   upload.single("profile_photo"),
   updateUser,
 );
 
-router.delete("/:id", deleteUser);
+// Delete user
+router.delete("/:id", authenticateToken, deleteUser);
 
 export default router;

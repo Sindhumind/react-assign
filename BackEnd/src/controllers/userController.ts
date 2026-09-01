@@ -92,25 +92,15 @@ export const updateUser = async (
   try {
     const { id } = req.params;
     const { name, email, phone, gender } = req.body;
+    const profilePhoto = req.file ? req.file.filename : null;
 
-    console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
-
-    const profilePhoto = req.file
-      ? req.file.filename
-      : null;
-
-    let result;
-
-    // If a new image is uploaded
-    if (profilePhoto) {
-      result = await pool.query(
+    const result  = await pool.query(
         `UPDATE users
          SET name = $1,
              email = $2,
              phone = $3,
              gender = $4,
-             profile_photo = $5
+             profile_photo = COALESCE($5, profile_photo)
          WHERE id = $6
          RETURNING *`,
         [
@@ -122,25 +112,6 @@ export const updateUser = async (
           id,
         ],
       );
-    } else {
-      // If no new image is uploaded
-      result = await pool.query(
-        `UPDATE users
-         SET name = $1,
-             email = $2,
-             phone = $3,
-             gender = $4
-         WHERE id = $5
-         RETURNING *`,
-        [
-          name,
-          email,
-          phone,
-          gender,
-          id,
-        ],
-      );
-    }
 
     if (result.rows.length === 0) {
       res.status(404).json({
@@ -148,9 +119,6 @@ export const updateUser = async (
       });
       return;
     }
-
-    console.log("UPDATED USER:", result.rows[0]);
-
     res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error("UPDATE ERROR:", error);

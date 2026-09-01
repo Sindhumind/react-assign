@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Toast from "./toastAlerts.tsx";
 import type { User } from "../types";
 import { validateEmail, isDuplicate } from "../utils/logic";
 
 type UserFormProps = {
   users: User[];
-  onAddUser: (user: User, profilePhoto: File | null) => void;
-  onEditUser: (user: User, profilePhoto: File | null) => void;
+  onAddUser: (user: User, profilePhoto: File | null) => Promise<void>;
+  onEditUser: (user: User, profilePhoto: File | null) => Promise<void>;
   userToEdit: User | null;
+  onCancelEdit: () => void;
 };
 
 export default function UserForm({
@@ -15,8 +16,11 @@ export default function UserForm({
   onAddUser,
   onEditUser,
   userToEdit,
+  onCancelEdit,
 }: UserFormProps) {
   const [toast, setToast] = useState("");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: userToEdit?.name ?? "",
@@ -53,7 +57,22 @@ export default function UserForm({
     setProfilePhoto(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      gender: "",
+    });
+
+    setProfilePhoto(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const { name, email, phone, gender } = formData;
@@ -87,22 +106,22 @@ export default function UserForm({
       profile_photo: userToEdit?.profile_photo ?? "",
     };
 
-    if (userToEdit) {
-      console.log("Sending image from UserForm:", profilePhoto);
+    try {
+      if (userToEdit) {
+        await onEditUser(newUser, profilePhoto);
 
-      onEditUser(newUser, profilePhoto);
-    } else {
-      onAddUser(newUser, profilePhoto);
+        // Exit edit mode
+        onCancelEdit();
+      } else {
+        await onAddUser(newUser, profilePhoto);
+      }
+
+      // Clear all form fields
+      resetForm();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setToast("Something went wrong");
     }
-
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      gender: "",
-    });
-
-    setProfilePhoto(null);
   };
 
   return (
@@ -159,6 +178,7 @@ export default function UserForm({
 
         {/* Profile Photo */}
         <input
+          ref={fileInputRef}
           className="input"
           type="file"
           accept="image/*"
