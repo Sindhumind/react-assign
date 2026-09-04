@@ -16,7 +16,7 @@ export function useUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/users", {
+        const response = await fetch("http://localhost:3002/api/users", {
           headers: getAuthHeaders(),
         });
 
@@ -50,7 +50,7 @@ export function useUsers() {
           formData.append("profile_photo", profilePhoto);
         }
 
-        const response = await fetch("http://localhost:3000/api/users", {
+        const response = await fetch("http://localhost:3002/api/users", {
           method: "POST",
           headers: getAuthHeaders(),
           body: formData,
@@ -87,7 +87,7 @@ export function useUsers() {
         }
 
         const response = await fetch(
-          `http://localhost:3000/api/users/${updatedUser.id}`,
+          `http://localhost:3002/api/users/${updatedUser.id}`,
           {
             method: "PUT",
             headers: getAuthHeaders(),
@@ -117,7 +117,7 @@ export function useUsers() {
   // Delete user
   const deleteUser = useCallback(async (id: number): Promise<void> => {
     try {
-      const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+      const response = await fetch(`http://localhost:3002/api/users/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });

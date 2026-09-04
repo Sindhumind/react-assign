@@ -1,1 +1,2 @@
-ALTER TABLE users ADD COLUMN profile_photo VARCHAR(255);
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255);

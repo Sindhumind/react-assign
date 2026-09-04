@@ -191,7 +191,7 @@ function UserTable({
                   <td className="profile-photo-column">
                     {user.profile_photo && (
                       <img
-                        src={`http://localhost:3000/uploads/${user.profile_photo}`}
+                        src={`http://localhost:3002/uploads/${user.profile_photo}`}
                         alt={user.name}
                         className="profile-photo"
                       />

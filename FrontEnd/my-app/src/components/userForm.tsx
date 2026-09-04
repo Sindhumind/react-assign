@@ -203,7 +203,7 @@ export default function UserForm({
         {/* Existing image while editing */}
         {!profilePhoto && userToEdit?.profile_photo && (
           <img
-            src={`http://localhost:3000/uploads/${userToEdit.profile_photo}`}
+            src={`http://localhost:3002/uploads/${userToEdit.profile_photo}`}
             alt="Current profile"
             style={{
               width: "80px",
