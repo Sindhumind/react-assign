@@ -1,40 +1,45 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../types";
 
-export function useUsers() {
+export function useUsers(isLoggedIn: boolean) {
   const [users, setUsers] = useState<User[]>([]);
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): HeadersInit => {
     const token = localStorage.getItem("token");
 
-    return {
-      Authorization: `Bearer ${token}`,
-    };
+    return token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {};
   };
 
   // Get users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch("http://localhost:3002/api/users", {
-          headers: getAuthHeaders(),
-        });
+ useEffect(() => {
+   if (!isLoggedIn) {
+     return;
+   }
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
+   const fetchUsers = async () => {
+     try {
+       const response = await fetch("/api/users/", {
+         headers: getAuthHeaders(),
+       });
 
-        const data: User[] = await response.json();
+       if (!response.ok) {
+         throw new Error("Failed to fetch users");
+       }
 
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
+       const data: User[] = await response.json();
 
-    fetchUsers();
-  }, []);
+       setUsers(data);
+     } catch (error) {
+       console.error("Error fetching users:", error);
+     }
+   };
 
+   fetchUsers();
+ }, [isLoggedIn]);
   // Add user
   const addUser = useCallback(
     async (user: User, profilePhoto: File | null): Promise<void> => {
@@ -50,7 +55,7 @@ export function useUsers() {
           formData.append("profile_photo", profilePhoto);
         }
 
-        const response = await fetch("http://localhost:3002/api/users", {
+        const response = await fetch("/api/users/", {
           method: "POST",
           headers: getAuthHeaders(),
           body: formData,
@@ -86,14 +91,11 @@ export function useUsers() {
           formData.append("profile_photo", profilePhoto);
         }
 
-        const response = await fetch(
-          `http://localhost:3002/api/users/${updatedUser.id}`,
-          {
-            method: "PUT",
-            headers: getAuthHeaders(),
-            body: formData,
-          },
-        );
+        const response = await fetch(`/api/users/${updatedUser.id}`, {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: formData,
+        });
 
         if (!response.ok) {
           throw new Error("Failed to update user");
@@ -117,7 +119,7 @@ export function useUsers() {
   // Delete user
   const deleteUser = useCallback(async (id: number): Promise<void> => {
     try {
-      const response = await fetch(`http://localhost:3002/api/users/${id}`, {
+      const response = await fetch(`/api/users/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });

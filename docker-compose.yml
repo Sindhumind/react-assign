@@ -42,6 +42,8 @@ services:
       DB_USER: postgres
       DB_PASSWORD: Sindhu@999
       DB_NAME: user_management
+    volumes:
+      - ./BackEnd/uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy

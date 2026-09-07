@@ -12,7 +12,7 @@ export default function App() {
     () => !!localStorage.getItem("token"),
   );
 
-  const { users, addUser, updateUser, deleteUser } = useUsers();
+  const { users, addUser, updateUser, deleteUser } = useUsers(isLoggedIn);
 
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
