@@ -1,4 +1,4 @@
-import type { User } from "../types";
+import type { User } from '../types';
 
 function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

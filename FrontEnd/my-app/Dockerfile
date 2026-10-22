@@ -1,15 +1,19 @@
-FROM node:20-alpine
+# Stage 1: Build the React application
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-
 RUN npm ci
 
 COPY . .
-
 RUN npm run build
 
-EXPOSE 5173
+# Stage 2: Serve the production build
+FROM nginx:alpine AS production
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,39 +1,46 @@
-import { Router } from "express";
-import {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "../controllers/userController";
-import upload from "../middleware/upload";
-import { authenticateToken } from "../middleware/authMiddleware";
+import { Router } from 'express';
+import * as userController from '../controllers/userController';
+import upload from '../middleware/upload';
+import { authenticateToken } from '../middleware/authMiddleware';
+import { validateImageSignature } from '../middleware/validateImageSignature';
+import { doubleCsrfProtection } from '../middleware/csrfProtection';
 
 const router = Router();
 
-// Get all users
-router.get("/", authenticateToken, getUsers);
+router.get(
+  '/',
+  authenticateToken,
+  userController.getUsers,
+);
 
-// Get user by ID
-router.get("/:id", authenticateToken, getUserById);
+router.get(
+  '/:id',
+  authenticateToken,
+  userController.getUserById,
+);
 
-// Create user
 router.post(
-  "/",
+  '/',
   authenticateToken,
-  upload.single("profile_photo"),
-  createUser,
+  doubleCsrfProtection,
+  upload.single('profile_photo'),
+  validateImageSignature,
+  userController.createUser,
 );
 
-// Update user
 router.put(
-  "/:id",
+  '/:id',
   authenticateToken,
-  upload.single("profile_photo"),
-  updateUser,
+  doubleCsrfProtection,
+  upload.single('profile_photo'),
+  validateImageSignature,
+  userController.updateUser,
 );
 
-// Delete user
-router.delete("/:id", authenticateToken, deleteUser);
-
+router.delete(
+  '/:id',
+  authenticateToken,
+  doubleCsrfProtection,
+  userController.deleteUser,
+);
 export default router;

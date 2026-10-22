@@ -1,22 +1,16 @@
-import fs from "fs";
-import path from "path";
-import dotenv from "dotenv";
-import { Pool } from "pg";
+
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+import pool from '../config/db';
 
 dotenv.config();
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: Number(process.env.DB_PORT),
-});
+async function runMigrations(): Promise<void> {
+  const client = await pool.connect();
 
-async function runMigrations() {
   try {
-    // Create migration tracking table
-    await pool.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS migrations (
         id SERIAL PRIMARY KEY,
         filename VARCHAR(255) UNIQUE NOT NULL,
@@ -24,18 +18,16 @@ async function runMigrations() {
       );
     `);
 
-    // Find migration files
-    const migrationsPath = path.join(__dirname, "../migrations");
+    const migrationsPath = path.join(__dirname, '../migrations');
 
     const files = fs
       .readdirSync(migrationsPath)
-      .filter((file) => file.endsWith(".sql"))
+      .filter((file) => file.endsWith('.sql'))
       .sort();
 
     for (const file of files) {
-      // Check if migration already ran
-      const result = await pool.query(
-        "SELECT * FROM migrations WHERE filename = $1",
+      const result = await client.query(
+        'SELECT 1 FROM migrations WHERE filename = $1',
         [file]
       );
 
@@ -44,30 +36,49 @@ async function runMigrations() {
         continue;
       }
 
-      // Read SQL file
       const sql = fs.readFileSync(
         path.join(migrationsPath, file),
-        "utf8"
+        'utf8'
       );
 
-      // Run SQL
-      await pool.query(sql);
+      console.log(`Running migration: ${file}`);
 
-      // Save migration history
-      await pool.query(
-        "INSERT INTO migrations (filename) VALUES ($1)",
-        [file]
-      );
+      await client.query('BEGIN');
 
-      console.log(`${file} executed successfully`);
+      try {
+        await client.query(sql);
+
+        await client.query(
+          'INSERT INTO migrations (filename) VALUES ($1)',
+          [file]
+        );
+
+        await client.query('COMMIT');
+
+        console.log(`${file} executed successfully`);
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw new Error(`Migration ${file} failed: ${String(error)}`);
+      }
     }
 
-    console.log("All migrations completed!");
+    console.log('All migrations completed successfully.');
   } catch (error) {
-    console.error("Migration failed:", error);
+    console.error('Migration process failed:', error);
+    process.exitCode = 1;
   } finally {
-    await pool.end();
+    client.release();
+
+    try {
+      await pool.end();
+    } catch (error) {
+      console.error('Failed to close database pool:', error);
+      process.exitCode = 1;
+    }
   }
 }
 
-runMigrations();
+runMigrations().catch((error: unknown) => {
+  console.error('Unexpected migration error:', error);
+  process.exitCode = 1;
+});

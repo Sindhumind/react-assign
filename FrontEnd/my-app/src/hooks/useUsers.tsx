@@ -1,75 +1,49 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../types";
+import * as userService from "../services/userService";
 
 export function useUsers(isLoggedIn: boolean) {
   const [users, setUsers] = useState<User[]>([]);
-
-  const getAuthHeaders = (): HeadersInit => {
-    const token = localStorage.getItem("token");
-
-    return token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : {};
-  };
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Get users
- useEffect(() => {
-   if (!isLoggedIn) {
-     return;
-   }
+  useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
 
-   const fetchUsers = async () => {
-     try {
-       const response = await fetch("/api/users/", {
-         headers: getAuthHeaders(),
-       });
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      setError("");
 
-       if (!response.ok) {
-         throw new Error("Failed to fetch users");
-       }
+      try {
+        const data = await userService.getUsers();
 
-       const data: User[] = await response.json();
+        setUsers(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setError("Unable to load users. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-       setUsers(data);
-     } catch (error) {
-       console.error("Error fetching users:", error);
-     }
-   };
+    fetchUsers();
+  }, [isLoggedIn]);
 
-   fetchUsers();
- }, [isLoggedIn]);
   // Add user
   const addUser = useCallback(
     async (user: User, profilePhoto: File | null): Promise<void> => {
+      setError("");
+
       try {
-        const formData = new FormData();
+        const createdUser = await userService.createUser(user, profilePhoto);
 
-        formData.append("name", user.name);
-        formData.append("email", user.email);
-        formData.append("phone", user.phone);
-        formData.append("gender", user.gender);
-
-        if (profilePhoto) {
-          formData.append("profile_photo", profilePhoto);
-        }
-
-        const response = await fetch("/api/users/", {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to create user");
-        }
-
-        const createdUser: User = await response.json();
-
-        setUsers((prevUsers) => [...prevUsers, createdUser]);
+        setUsers((previousUsers) => [...previousUsers, createdUser]);
       } catch (error) {
         console.error("Error creating user:", error);
+        setError("Unable to create user. Please try again.");
         throw error;
       }
     },
@@ -79,37 +53,22 @@ export function useUsers(isLoggedIn: boolean) {
   // Update user
   const updateUser = useCallback(
     async (updatedUser: User, profilePhoto: File | null): Promise<void> => {
+      setError("");
+
       try {
-        const formData = new FormData();
+        const savedUser = await userService.updateUser(
+          updatedUser,
+          profilePhoto,
+        );
 
-        formData.append("name", updatedUser.name);
-        formData.append("email", updatedUser.email);
-        formData.append("phone", updatedUser.phone);
-        formData.append("gender", updatedUser.gender);
-
-        if (profilePhoto) {
-          formData.append("profile_photo", profilePhoto);
-        }
-
-        const response = await fetch(`/api/users/${updatedUser.id}`, {
-          method: "PUT",
-          headers: getAuthHeaders(),
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update user");
-        }
-
-        const savedUser: User = await response.json();
-
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
+        setUsers((previousUsers) =>
+          previousUsers.map((user) =>
             user.id === savedUser.id ? savedUser : user,
           ),
         );
       } catch (error) {
         console.error("Error updating user:", error);
+        setError("Unable to update user. Please try again.");
         throw error;
       }
     },
@@ -118,25 +77,25 @@ export function useUsers(isLoggedIn: boolean) {
 
   // Delete user
   const deleteUser = useCallback(async (id: number): Promise<void> => {
+    setError("");
+
     try {
-      const response = await fetch(`/api/users/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
+      await userService.deleteUser(id);
 
-      if (!response.ok) {
-        throw new Error("Failed to delete user");
-      }
-
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id));
+      setUsers((previousUsers) =>
+        previousUsers.filter((user) => user.id !== id),
+      );
     } catch (error) {
       console.error("Error deleting user:", error);
+      setError("Unable to delete user. Please try again.");
       throw error;
     }
   }, []);
 
   return {
     users,
+    isLoading,
+    error,
     addUser,
     updateUser,
     deleteUser,

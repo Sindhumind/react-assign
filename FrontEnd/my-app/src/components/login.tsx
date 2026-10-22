@@ -1,76 +1,73 @@
-import { useState } from "react";
-
-type LoginProps = {
-  onLogin: () => void;
-};
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import InputField from "./common/InputField";
+import type { LoginProps } from "../types";
+import { login } from "../services/authService";
 
 export default function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value);
+  };
 
+  const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
+  };
+
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Login failed");
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-
+      await login(username, password);
       onLogin();
     } catch (error) {
       console.error("Login error:", error);
-      setError("Something went wrong");
+
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Something went wrong");
+      }
     }
   };
 
   return (
-  <div className="login-container">
-    <div className="login-card">
-      <form onSubmit={handleLogin}>
-        <h2>Login</h2>
+    <div className="login-container">
+      <div className="login-card">
+        <form onSubmit={handleLogin}>
+          <h2>Login</h2>
 
-        <input
-          className="input"
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+          <InputField
+            name="username"
+            placeholder="Username"
+            value={username}
+            onChange={handleUsernameChange}
+            required
+          />
 
-        <input
-          className="input"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <InputField
+            name="password"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={handlePasswordChange}
+            required
+          />
 
-        {error && <p className="login-error">{error}</p>}
+          {error && (
+            <p className="login-error" role="alert">
+              {error}
+            </p>
+          )}
 
-        <button className="btn" type="submit">
-          Login
-        </button>
-      </form>
+          <button className="btn" type="submit">
+            Login
+          </button>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
 }

@@ -5,7 +5,7 @@ type ToastProps = {
 
 export default function Toast({ message, onClose }: ToastProps) {
   return (
-    <div className="toast">
+    <div className='toast'>
       <span>{message}</span>
 
       <button onClick={onClose}>×</button>

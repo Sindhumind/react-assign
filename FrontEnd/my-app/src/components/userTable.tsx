@@ -1,12 +1,7 @@
 import { memo, useMemo, useState } from "react";
-import type { User } from "../types";
-
-type UserTableProps = {
-  users: User[];
-  onDeleteUser: (id: number) => void;
-  onEditUser: (user: User) => void;
-  userToEdit: User | null;
-};
+import type { User, UserTableProps } from "../types";
+import Button from "./common/Button";
+import InputField from "./common/InputField";
 
 function UserTable({
   users,
@@ -21,9 +16,11 @@ function UserTable({
 
   const filteredAndSortedUsers = useMemo(() => {
     let result = users.filter((user) => {
+      const searchTerm = search.toLowerCase();
+
       const matchesSearch =
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase());
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm);
 
       const matchesGender =
         genderFilter === "All" || user.gender === genderFilter;
@@ -69,13 +66,23 @@ function UserTable({
     setSortOrder("asc");
   }
 
+  function getSortLabel(field: string, label: string) {
+    if (sortBy !== field) {
+      return `Sort by ${label}`;
+    }
+
+    return `Sort by ${label} ${
+      sortOrder === "asc" ? "descending" : "ascending"
+    }`;
+  }
+
   return (
     <div className="card">
       <h2>Registered Users</h2>
 
       <div className="table-filters">
-        <input
-          className="input"
+        <InputField
+          name="search"
           type="text"
           placeholder="Search name or email"
           value={search}
@@ -86,6 +93,7 @@ function UserTable({
           className="input"
           value={genderFilter}
           onChange={(e) => setGenderFilter(e.target.value)}
+          aria-label="Filter users by gender"
         >
           <option value="All">All Genders</option>
           <option value="Male">Male</option>
@@ -93,16 +101,17 @@ function UserTable({
           <option value="Other">Other</option>
         </select>
 
-        <button className="btn" onClick={clearFilters}>
+        <Button onClick={clearFilters}>
+          <i className="fa-solid fa-xmark" aria-hidden="true"></i>
           Clear
-        </button>
+        </Button>
       </div>
 
       <div className="table-container">
         <table className="table">
           <thead>
             <tr>
-              <th>
+              <th scope="col">
                 <div className="table-heading">
                   <span>Name</span>
 
@@ -110,6 +119,7 @@ function UserTable({
                     type="button"
                     className="sort-button"
                     onClick={() => handleSortChange("name")}
+                    aria-label={getSortLabel("name", "Name")}
                   >
                     {sortBy === "name"
                       ? sortOrder === "asc"
@@ -120,7 +130,7 @@ function UserTable({
                 </div>
               </th>
 
-              <th>
+              <th scope="col">
                 <div className="table-heading">
                   <span>Email</span>
 
@@ -128,6 +138,7 @@ function UserTable({
                     type="button"
                     className="sort-button"
                     onClick={() => handleSortChange("email")}
+                    aria-label={getSortLabel("email", "Email")}
                   >
                     {sortBy === "email"
                       ? sortOrder === "asc"
@@ -138,7 +149,7 @@ function UserTable({
                 </div>
               </th>
 
-              <th>
+              <th scope="col">
                 <div className="table-heading">
                   <span>Phone</span>
 
@@ -146,6 +157,7 @@ function UserTable({
                     type="button"
                     className="sort-button"
                     onClick={() => handleSortChange("phone")}
+                    aria-label={getSortLabel("phone", "Phone")}
                   >
                     {sortBy === "phone"
                       ? sortOrder === "asc"
@@ -156,13 +168,15 @@ function UserTable({
                 </div>
               </th>
 
-              <th>
+              <th scope="col">
                 <div className="table-heading">
                   <span>Gender</span>
+
                   <button
                     type="button"
                     className="sort-button"
                     onClick={() => handleSortChange("gender")}
+                    aria-label={getSortLabel("gender", "Gender")}
                   >
                     {sortBy === "gender"
                       ? sortOrder === "asc"
@@ -172,8 +186,16 @@ function UserTable({
                   </button>
                 </div>
               </th>
-              <th className="profile-photo-column">Profile Photo</th>
-              <th className="action-column">Actions</th>
+
+              <th scope="col">Address</th>
+
+              <th scope="col" className="profile-photo-column">
+                Profile Photo
+              </th>
+
+              <th scope="col" className="action-column">
+                Actions
+              </th>
             </tr>
           </thead>
 
@@ -188,34 +210,44 @@ function UserTable({
                   <td>{user.email}</td>
                   <td>{user.phone}</td>
                   <td>{user.gender}</td>
+                  <td>{user.address}</td>
+
                   <td className="profile-photo-column">
                     {user.profile_photo && (
                       <img
-                        src={`/uploads/${encodeURIComponent(user.profile_photo)}`}
-                        alt={user.name}
+                        src={`/uploads/${encodeURIComponent(
+                          user.profile_photo,
+                        )}`}
+                        alt={`${user.name}'s profile`}
                         className="profile-photo"
                       />
                     )}
                   </td>
+
                   <td>
                     <div className="actions">
-                      <button className="btn" onClick={() => onEditUser(user)}>
+                      <Button onClick={() => onEditUser(user)}>
+                        <i
+                          className="fa-solid fa-pen-to-square"
+                          aria-hidden="true"
+                        ></i>
                         Edit
-                      </button>
+                      </Button>
 
-                      <button
-                        className="btn btn-delete"
+                      <Button
+                        variant="danger"
                         onClick={() => onDeleteUser(user.id)}
                       >
+                        <i className="fa-solid fa-trash" aria-hidden="true"></i>
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="no-users">
+                <td colSpan={7} className="no-users">
                   No users found
                 </td>
               </tr>

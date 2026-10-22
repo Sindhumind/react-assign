@@ -1,19 +1,13 @@
 type HeaderProps = {
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
 };
 
 export default function Header({ onLogout }: HeaderProps) {
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-
-    onLogout();
-  };
-
   return (
     <header className="app-header">
       <h1>User Management</h1>
 
-      <button className="btn" onClick={handleLogout}>
+      <button className="btn" onClick={() => void onLogout()}>
         Logout
       </button>
     </header>

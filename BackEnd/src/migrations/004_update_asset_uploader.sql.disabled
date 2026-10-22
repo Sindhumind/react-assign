@@ -1,0 +1,6 @@
+ALTER TABLE assets
+DROP CONSTRAINT IF EXISTS fk_assets_uploaded_by;
+
+ALTER TABLE assets
+ALTER COLUMN uploaded_by TYPE VARCHAR(100)
+USING uploaded_by::VARCHAR;

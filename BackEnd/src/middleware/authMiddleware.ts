@@ -1,36 +1,40 @@
-import {
-  Request,
-  Response,
-  NextFunction,
-} from "express";
-import jwt from "jsonwebtoken";
+
+import type { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 
 export const authenticateToken = (
   req: Request,
   res: Response,
   next: NextFunction,
 ): void => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies?.access_token;
 
-  const token = authHeader?.split(" ")[1];
-
-  if (!token) {
+  if (typeof token !== 'string' || !token) {
     res.status(401).json({
-      message: "Access denied. Token missing.",
+      message: 'Authentication required. Please log in.',
+    });
+    return;
+  }
+
+  const secretKey = process.env.SECRET_KEY;
+
+  if (!secretKey) {
+    console.error('SECRET_KEY is not configured.');
+    res.status(500).json({
+      message: 'An unexpected server error occurred.',
     });
     return;
   }
 
   try {
-    jwt.verify(
-      token,
-      process.env.SECRET_KEY as string,
-    );
+    jwt.verify(token, secretKey, {
+      algorithms: ['HS256'],
+    });
 
     next();
-  } catch (error) {
-    res.status(403).json({
-      message: "Invalid or expired token",
+  } catch {
+    res.status(401).json({
+      message: 'Invalid or expired authentication session.',
     });
   }
 };

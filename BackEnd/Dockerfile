@@ -1,22 +1,19 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 WORKDIR /app
 
-# Copy workspace files
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json ./
 
-
-# Install all dependencies (including devDependencies for build)
 RUN npm ci
 
-# Copies backend source code into the container.
 COPY . .
 
-# Builds TypeScript application.
-RUN npm run build
+RUN npm run build \
+    && mkdir -p /app/uploads \
+    && chown -R node:node /app
 
-# Documents that Node.js application uses port 3000
+USER node
+
 EXPOSE 3000
 
-#Starts backend when the container starts.
 CMD ["npm", "start"]
